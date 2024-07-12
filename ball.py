@@ -1,4 +1,5 @@
 import pygame
+import random
 from settings import *
 
 class Ball:
@@ -6,6 +7,7 @@ class Ball:
         self.rect = pygame.Rect(x, y, BALL_SIZE, BALL_SIZE)
         self.speed_x = BALL_SPEED_X
         self.speed_y = BALL_SPEED_Y
+        self.color = (255, 255, 255)
 
     def update(self):
         self.rect.x += self.speed_x
@@ -15,4 +17,15 @@ class Ball:
             self.speed_y = -self.speed_y
 
     def draw(self, screen):
-        pygame.draw.ellipse(screen, (255, 255, 255), self.rect)
+        pygame.draw.ellipse(screen, self.color, self.rect)
+
+    def change_color(self, new_color):
+        self.color = new_color
+
+    def increase_speed(self):
+        self.speed_x *= 1.05
+        self.speed_y *= 1.05
+
+    def reset_speed(self):
+        self.speed_x = BALL_SPEED_X if self.speed_x > 0 else -BALL_SPEED_X
+        self.speed_y = BALL_SPEED_Y if self.speed_y > 0 else -BALL_SPEED_Y

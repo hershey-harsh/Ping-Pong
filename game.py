@@ -1,7 +1,9 @@
 import pygame
+import random
 from settings import *
 from paddle import Paddle
 from ball import Ball
+from powerup import PowerUp
 
 class Game:
     def __init__(self, screen):
@@ -15,15 +17,19 @@ class Game:
         self.paused = False
         self.game_over = False
         self.show_start_screen = True
+        self.ball_hit_count = 0
+        self.powerups = []
 
     def start_new_game(self):
         self.score1 = 0
         self.score2 = 0
         self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
-        self.ball.speed_x = BALL_SPEED_X if self.ball.speed_x > 0 else -BALL_SPEED_X
-        self.ball.speed_y = BALL_SPEED_Y if self.ball.speed_y > 0 else -BALL_SPEED_Y
+        self.ball.reset_speed()
         self.game_over = False
         self.show_start_screen = False
+        self.ball_hit_count = 0
+        self.ball.change_color((255, 255, 255))
+        self.powerups = []
 
     def update(self):
         if self.show_start_screen or self.paused or self.game_over:
@@ -41,22 +47,28 @@ class Game:
 
         self.ball.update()
         self.check_collision()
+        self.update_powerups()
+
+        if random.random() < POWERUP_SPAWN_CHANCE:
+            self.spawn_powerup()
 
     def check_collision(self):
         if self.ball.rect.colliderect(self.paddle1.rect) or self.ball.rect.colliderect(self.paddle2.rect):
             self.ball.speed_x = -self.ball.speed_x
+            self.ball.increase_speed()
+            self.ball_hit_count += 1
+            if self.ball_hit_count % 5 == 0:
+                self.ball.change_color((255, 0, 0))  # Change ball color every 5 hits
 
         if self.ball.rect.left <= 0:
             self.score2 += 1
             self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
-            self.ball.speed_x = BALL_SPEED_X
-            self.ball.speed_y = BALL_SPEED_Y
+            self.ball.reset_speed()
 
         if self.ball.rect.right >= SCREEN_WIDTH:
             self.score1 += 1
             self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
-            self.ball.speed_x = -BALL_SPEED_X
-            self.ball.speed_y = BALL_SPEED_Y
+            self.ball.reset_speed()
 
         if self.score1 >= WINNING_SCORE or self.score2 >= WINNING_SCORE:
             self.game_over = True
@@ -79,6 +91,8 @@ class Game:
             self.paddle2.draw(self.screen)
             self.ball.draw(self.screen)
             self.draw_scores()
+            for powerup in self.powerups:
+                powerup.draw(self.screen)
             if self.paused:
                 self.draw_pause_screen()
 
@@ -99,3 +113,16 @@ class Game:
     def draw_pause_screen(self):
         pause_text = self.font.render("Paused", True, (255, 255, 255))
         self.screen.blit(pause_text, (SCREEN_WIDTH // 2 - pause_text.get_width() // 2, SCREEN_HEIGHT // 2 - pause_text.get_height() // 2))
+
+    def update_powerups(self):
+        for powerup in self.powerups:
+            powerup.update()
+            if self.ball.rect.colliderect(powerup.rect):
+                powerup.apply(self)
+                self.powerups.remove(powerup)
+
+    def spawn_powerup(self):
+        x = random.randint(POWERUP_SIZE, SCREEN_WIDTH - POWERUP_SIZE)
+        y = random.randint(POWERUP_SIZE, SCREEN_HEIGHT - POWERUP_SIZE)
+        type = random.choice(POWERUP_TYPES)
+        self.powerups.append(PowerUp(x, y, type))

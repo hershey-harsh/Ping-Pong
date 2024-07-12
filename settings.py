@@ -10,3 +10,6 @@ BALL_SPEED_Y = 5
 GAME_TITLE = "Ping Pong Game"
 WINNING_SCORE = 5
 FONT_SIZE = 32
+POWERUP_SIZE = 20
+POWERUP_SPAWN_CHANCE = 0.01
+POWERUP_TYPES = ["speed", "size", "ball_speed"]
