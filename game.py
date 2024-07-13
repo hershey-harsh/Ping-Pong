@@ -14,6 +14,8 @@ class Game:
         self.ball = Ball(SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2)
         self.score1 = 0
         self.score2 = 0
+        self.lives1 = PLAYER_LIVES
+        self.lives2 = PLAYER_LIVES
         self.paused = False
         self.game_over = False
         self.show_start_screen = True
@@ -23,6 +25,8 @@ class Game:
     def start_new_game(self):
         self.score1 = 0
         self.score2 = 0
+        self.lives1 = PLAYER_LIVES
+        self.lives2 = PLAYER_LIVES
         self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
         self.ball.reset_speed()
         self.game_over = False
@@ -46,6 +50,7 @@ class Game:
             self.paddle2.move(up=False)
 
         self.ball.update()
+        self.ball.random_direction()
         self.check_collision()
         self.update_powerups()
 
@@ -61,17 +66,18 @@ class Game:
                 self.ball.change_color((255, 0, 0))  # Change ball color every 5 hits
 
         if self.ball.rect.left <= 0:
-            self.score2 += 1
+            self.lives1 -= 1
             self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
             self.ball.reset_speed()
+            if self.lives1 <= 0:
+                self.game_over = True
 
         if self.ball.rect.right >= SCREEN_WIDTH:
-            self.score1 += 1
+            self.lives2 -= 1
             self.ball.rect.x, self.ball.rect.y = SCREEN_WIDTH // 2 - BALL_SIZE // 2, SCREEN_HEIGHT // 2 - BALL_SIZE // 2
             self.ball.reset_speed()
-
-        if self.score1 >= WINNING_SCORE or self.score2 >= WINNING_SCORE:
-            self.game_over = True
+            if self.lives2 <= 0:
+                self.game_over = True
 
     def pause(self):
         self.paused = not self.paused
@@ -91,6 +97,7 @@ class Game:
             self.paddle2.draw(self.screen)
             self.ball.draw(self.screen)
             self.draw_scores()
+            self.draw_lives()
             for powerup in self.powerups:
                 powerup.draw(self.screen)
             if self.paused:
@@ -100,12 +107,17 @@ class Game:
         score_text = self.font.render(f"{self.score1} - {self.score2}", True, (255, 255, 255))
         self.screen.blit(score_text, (SCREEN_WIDTH // 2 - score_text.get_width() // 2, 20))
 
+    def draw_lives(self):
+        lives_text = self.font.render(f"Lives: {self.lives1} - {self.lives2}", True, (255, 255, 255))
+        self.screen.blit(lives_text, (SCREEN_WIDTH // 2 - lives_text.get_width() // 2, 50))
+
     def draw_start_screen(self):
         start_text = self.font.render("Press SPACE to Start", True, (255, 255, 255))
         self.screen.blit(start_text, (SCREEN_WIDTH // 2 - start_text.get_width() // 2, SCREEN_HEIGHT // 2 - start_text.get_height() // 2))
 
     def draw_game_over_screen(self):
-        winner_text = self.font.render(f"{'Player 1' if self.score1 >= WINNING_SCORE else 'Player 2'} Wins!", True, (255, 255, 255))
+        winner = "Player 1" if self.lives1 > 0 else "Player 2"
+        winner_text = self.font.render(f"{winner} Wins!", True, (255, 255, 255))
         restart_text = self.font.render("Press SPACE to Restart", True, (255, 255, 255))
         self.screen.blit(winner_text, (SCREEN_WIDTH // 2 - winner_text.get_width() // 2, SCREEN_HEIGHT // 2 - winner_text.get_height() // 2))
         self.screen.blit(restart_text, (SCREEN_WIDTH // 2 - restart_text.get_width() // 2, SCREEN_HEIGHT // 2 + winner_text.get_height() // 2))
@@ -126,3 +138,9 @@ class Game:
         y = random.randint(POWERUP_SIZE, SCREEN_HEIGHT - POWERUP_SIZE)
         type = random.choice(POWERUP_TYPES)
         self.powerups.append(PowerUp(x, y, type))
+
+    def add_life(self):
+        if self.lives1 < PLAYER_LIVES:
+            self.lives1 += 1
+        if self.lives2 < PLAYER_LIVES:
+            self.lives2 += 1

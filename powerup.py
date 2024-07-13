@@ -5,7 +5,21 @@ class PowerUp:
     def __init__(self, x, y, type):
         self.rect = pygame.Rect(x, y, POWERUP_SIZE, POWERUP_SIZE)
         self.type = type
-        self.color = (0, 255, 0) if type == "speed" else (0, 0, 255) if type == "size" else (255, 0, 0)
+        self.color = self.get_color()
+
+    def get_color(self):
+        if self.type == "speed":
+            return (0, 255, 0)
+        elif self.type == "size":
+            return (0, 0, 255)
+        elif self.type == "ball_speed":
+            return (255, 0, 0)
+        elif self.type == "reverse":
+            return (255, 255, 0)
+        elif self.type == "shrink":
+            return (255, 0, 255)
+        elif self.type == "extra_life":
+            return (0, 255, 255)
 
     def update(self):
         pass
@@ -22,3 +36,11 @@ class PowerUp:
             game.paddle2.increase_size()
         elif self.type == "ball_speed":
             game.ball.increase_speed()
+        elif self.type == "reverse":
+            game.paddle1.reverse_controls()
+            game.paddle2.reverse_controls()
+        elif self.type == "shrink":
+            game.paddle1.shrink()
+            game.paddle2.shrink()
+        elif self.type == "extra_life":
+            game.add_life()
